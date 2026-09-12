@@ -1,0 +1,72 @@
+{% extends "core/base.html" %}
+
+{% block title %}Notes & Reminders - ELITE Treasury{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-700">📝 Notes & Reminders</h2>
+        <button onclick="document.getElementById('addNoteModal').classList.remove('hidden')" 
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">
+            + Add Note
+        </button>
+    </div>
+
+    <!-- Add Note Modal -->
+    <div id="addNoteModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <h3 class="text-lg font-bold mb-4">Add New Note/Reminder</h3>
+            <form method="POST" action="{% url 'note_create' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Title</label>
+                    <input type="text" name="title" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Content (Optional)</label>
+                    <textarea name="content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Due Date (Reminder)</label>
+                    <input type="date" name="due_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('addNoteModal').classList.add('hidden')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">Cancel</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notes List -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for note in notes %}
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 {% if note.is_completed %}border-green-500 opacity-60{% elif note.due_date %}border-yellow-500{% else %}border-blue-500{% endif %}">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-bold {% if note.is_completed %}line-through text-gray-500{% else %}text-gray-800{% endif %}">
+                    {{ note.title }}
+                </h3>
+                <div class="flex space-x-2">
+                    <a href="{% url 'note_toggle_complete' note.id %}" class="text-green-600 hover:text-green-800 text-sm">
+                        {% if note.is_completed %}↺{% else %}✓{% endif %}
+                    </a>
+                    <a href="{% url 'note_delete' note.id %}" class="text-red-600 hover:text-red-800 text-sm" onclick="return confirm('Delete this note?')">🗑</a>
+                </div>
+            </div>
+            {% if note.content %}
+                <p class="text-gray-600 text-sm mb-4">{{ note.content }}</p>
+            {% endif %}
+            {% if note.due_date %}
+                <div class="text-xs text-yellow-700 bg-yellow-100 px-2 py-1 rounded inline-block">
+                     Due: {{ note.due_date|date:"M d, Y" }}
+                </div>
+            {% endif %}
+        </div>
+        {% empty %}
+            <div class="col-span-full text-center py-12 text-gray-500">
+                <p class="text-xl">No notes yet. Click "+ Add Note" to create one.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

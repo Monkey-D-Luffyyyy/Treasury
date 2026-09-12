@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Record Payment - ELITE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="max-w-lg mx-auto p-6 mt-10">
+        
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-blue-800">Record Payment</h1>
+                <p class="text-gray-600 mt-2">{{ member.first_name }} {{ member.last_name }}</p>
+                <p class="text-sm text-gray-500">{{ member.member_id }} • {{ member.team.name }}</p>
+            </div>
+
+            <!-- Current Status -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Fund Period:</span>
+                    <span class="font-semibold">{{ active_fund.name }}</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Expected:</span>
+                    <span class="font-semibold">₱{{ active_fund.amount_per_member }}</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600">Already Paid:</span>
+                    <span class="font-semibold text-green-600">₱{{ total_paid }}</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-blue-300">
+                    <span class="text-sm font-semibold text-gray-700">Remaining:</span>
+                    <span class="font-bold text-xl text-red-600">₱{{ remaining }}</span>
+                </div>
+            </div>
+
+            <!-- Payment Form -->
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Amount to Pay (₱)
+                    </label>
+                    
+                    <!-- Amount Input with Up/Down Buttons -->
+                    <div class="flex items-center space-x-2">
+                        <button type="button" id="decreaseBtn" 
+                                class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg text-xl transition">
+                            −
+                        </button>
+                        
+                        <input type="number" name="amount" id="amountInput" 
+                               value="{{ default_amount }}" step="1" min="1" max="{{ remaining }}"
+                               class="flex-1 text-center text-3xl font-bold border-2 border-blue-500 rounded-lg py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        
+                        <button type="button" id="increaseBtn" 
+                                class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg text-xl transition">
+                            +
+                        </button>
+                    </div>
+                    
+                    <!-- Quick Amount Buttons -->
+                    <div class="grid grid-cols-4 gap-2 mt-4">
+                        <button type="button" class="quick-amount bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 rounded" data-amount="10">
+                            ₱10
+                        </button>
+                        <button type="button" class="quick-amount bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 rounded" data-amount="20">
+                            ₱20
+                        </button>
+                        <button type="button" class="quick-amount bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 rounded" data-amount="30">
+                            ₱30
+                        </button>
+                        <button type="button" class="quick-amount bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded" data-amount="{{ remaining }}">
+                            Full ₱{{ remaining }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-3">
+                    <a href="{% url 'fund_collection' %}?team={{ member.team.id }}" 
+                       class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg text-center">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg">
+                        ✓ Record Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        const amountInput = document.getElementById('amountInput');
+        const decreaseBtn = document.getElementById('decreaseBtn');
+        const increaseBtn = document.getElementById('increaseBtn');
+        const quickAmountBtns = document.querySelectorAll('.quick-amount');
+        const maxAmount = {{ remaining }};
+
+        // Decrease button
+        decreaseBtn.addEventListener('click', () => {
+            let current = parseInt(amountInput.value) || 0;
+            if (current > 1) {
+                amountInput.value = current - 1;
+            }
+        });
+
+        // Increase button
+        increaseBtn.addEventListener('click', () => {
+            let current = parseInt(amountInput.value) || 0;
+            if (current < maxAmount) {
+                amountInput.value = current + 1;
+            }
+        });
+
+        // Quick amount buttons
+        quickAmountBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                let amount = parseInt(btn.dataset.amount);
+                if (amount <= maxAmount) {
+                    amountInput.value = amount;
+                }
+            });
+        });
+
+        // Prevent manual input from exceeding max
+        amountInput.addEventListener('change', () => {
+            let value = parseInt(amountInput.value) || 0;
+            if (value > maxAmount) {
+                amountInput.value = maxAmount;
+            } else if (value < 1) {
+                amountInput.value = 1;
+            }
+        });
+    </script>
+
+</body>
+</html>

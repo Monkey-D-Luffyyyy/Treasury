@@ -1,0 +1,82 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - ELITE Treasury{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-black text-elite-dark">Financial Overview</h2>
+        <span class="bg-elite-blue text-white px-4 py-1 rounded-full text-sm font-semibold">September 2026</span>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-elite-blue card-hover">
+            <p class="text-elite-silver text-sm font-medium">Total Active Members</p>
+            <p class="text-4xl font-black text-elite-dark mt-2">{{ total_members }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-elite-silver card-hover">
+            <p class="text-elite-silver text-sm font-medium">Expected Funds</p>
+            <p class="text-4xl font-black text-elite-dark mt-2">₱{{ total_expected }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-elite-green card-hover">
+            <p class="text-elite-silver text-sm font-medium">Total Collected</p>
+            <p class="text-4xl font-black text-elite-green mt-2">₱{{ total_collected }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-elite-red card-hover">
+            <p class="text-elite-silver text-sm font-medium">Outstanding Balance</p>
+            <p class="text-4xl font-black text-elite-red mt-2">₱{{ total_unpaid }}</p>
+        </div>
+    </div>
+
+    <!-- Team Cards Grid -->
+    <h2 class="text-2xl font-bold text-elite-dark mb-6">Team Collection Status</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        
+        {% for stat in team_stats %}
+        <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border-t-4 border-elite-blue card-hover">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg font-bold text-elite-dark">{{ stat.team.name }}</h3>
+                <span class="bg-blue-100 text-elite-blue text-xs font-bold px-3 py-1 rounded-full">
+                    {{ stat.member_count }} Members
+                </span>
+            </div>
+            
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between items-center">
+                    <span class="text-elite-silver">Expected:</span>
+                    <span class="font-bold text-elite-dark">₱{{ stat.expected }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-elite-silver">Collected:</span>
+                    <span class="font-bold text-elite-green">₱{{ stat.collected }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-elite-silver">Unpaid:</span>
+                    <span class="font-bold text-elite-red">₱{{ stat.unpaid }}</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-5">
+                <div class="flex justify-between text-xs text-elite-silver mb-1 font-medium">
+                    <span>Collection Rate</span>
+                    <span>{{ stat.collection_rate }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div class="bg-elite-blue h-3 rounded-full transition-all duration-500" style="width: {{ stat.collection_rate }}%"></div>
+                </div>
+            </div>
+
+            <a href="{% url 'member_list' %}?team={{ stat.team.id }}" class="mt-6 block text-center bg-elite-dark hover:bg-elite-slate text-white font-bold py-2.5 px-4 rounded-lg transition">
+                View Team Members →
+            </a>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E.L.I.T.E Treasury Management{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        elite: {
+                            dark: '#0f172a',
+                            slate: '#1e293b',
+                            red: '#dc2626',
+                            green: '#4ade80',
+                            blue: '#3b82f6',
+                            silver: '#94a3b8',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navigation -->
+    <nav class="bg-elite-dark text-white shadow-2xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="{% url 'landing' %}" class="flex items-center space-x-3">
+                    <img src="{% static 'core/images/elite_logo.png' %}" alt="ELITE Logo" class="h-10 w-10">
+                    <div>
+                        <span class="font-bold text-lg tracking-wider">E.L.I.T.E</span>
+                        <span class="hidden md:block text-xs text-elite-silver">Treasury Management</span>
+                    </div>
+                </a>
+                
+                <!-- Desktop Menu -->
+                                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="{% url 'landing' %}" class="hover:text-elite-green transition font-medium">Home</a>
+                    <a href="{% url 'dashboard' %}" class="hover:text-elite-green transition font-medium">Dashboard</a>
+                    <a href="{% url 'member_list' %}" class="hover:text-elite-green transition font-medium">Members</a>
+                    <a href="{% url 'fund_collection' %}" class="hover:text-elite-green transition font-medium">Collection</a>
+                    <a href="{% url 'treasury_ledger' %}" class="hover:text-elite-green transition font-medium">Treasury</a>
+                    <a href="{% url 'notes_list' %}" class="hover:text-elite-green transition font-medium">Notes</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuBtn" class="md:hidden text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+
+                        <!-- Mobile Menu -->
+            <div id="mobileMenu" class="hidden md:hidden pb-4 space-y-2">
+                <a href="{% url 'landing' %}" class="block py-2 hover:text-elite-green">Home</a>
+                <a href="{% url 'dashboard' %}" class="block py-2 hover:text-elite-green">Dashboard</a>
+                <a href="{% url 'member_list' %}" class="block py-2 hover:text-elite-green">Members</a>
+                <a href="{% url 'fund_collection' %}" class="block py-2 hover:text-elite-green">Collection</a>
+                <a href="{% url 'treasury_ledger' %}" class="block py-2 hover:text-elite-green">Treasury</a>
+                <a href="{% url 'notes_list' %}" class="block py-2 hover:text-elite-green">Notes</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 mt-4">
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg shadow-lg {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500{% elif message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500{% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}">
+                    <div class="flex items-center">
+                        <span class="mr-2">
+                            {% if message.tags == 'success' %}✓{% elif message.tags == 'warning' %}⚠{% elif message.tags == 'error' %}✗{% else %}ℹ{% endif %}
+                        </span>
+                        {{ message }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-elite-dark text-white mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <img src="{% static 'core/images/elite_logo.png' %}" alt="ELITE Logo" class="h-12 w-12">
+                        <div>
+                            <h3 class="font-bold text-lg">E.L.I.T.E</h3>
+                            <p class="text-xs text-elite-silver">Elevating Leaders Innovatively</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-elite-silver">Training & Excellence Organization</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-3">Quick Links</h4>
+                    <ul class="space-y-2 text-sm text-elite-silver">
+                        <li><a href="{% url 'dashboard' %}" class="hover:text-white transition">Dashboard</a></li>
+                        <li><a href="{% url 'member_list' %}" class="hover:text-white transition">Members</a></li>
+                        <li><a href="{% url 'fund_collection' %}" class="hover:text-white transition">Fund Collection</a></li>
+                        <li><a href="{% url 'treasury_ledger' %}" class="hover:text-white transition">Treasury</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-3">System Info</h4>
+                    <p class="text-sm text-elite-silver">Treasury Management System</p>
+                    <p class="text-sm text-elite-silver mt-2">© 2026 E.L.I.T.E Organization</p>
+                    <p class="text-xs text-elite-silver mt-1">All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+    </script>
+
+</body>
+</html>

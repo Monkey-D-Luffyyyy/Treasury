@@ -1,0 +1,282 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}E.L.I.T.E - Elevating Leaders Innovatively{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="gradient-hero text-white relative overflow-hidden">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-96 h-96 bg-elite-blue rounded-full filter blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-elite-red rounded-full filter blur-3xl"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 py-20 md:py-32">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <!-- Left Content -->
+            <div class="text-center lg:text-left">
+                <div class="inline-block bg-elite-red text-white px-4 py-1 rounded-full text-sm font-semibold mb-6">
+                    🎯 Treasury Management System
+                </div>
+                <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">
+                    E.L.I.T.E
+                    <span class="block text-2xl md:text-3xl font-light text-elite-silver mt-2">
+                        Elevating Leaders Innovatively
+                    </span>
+                </h1>
+                <p class="text-xl md:text-2xl text-elite-silver mb-8 leading-relaxed">
+                    Training & Excellence Organization
+                </p>
+                <p class="text-lg text-gray-300 mb-8">
+                    Centralized fund management, member tracking, and financial reporting for our organization.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <a href="{% url 'dashboard' %}" 
+                       class="bg-elite-green text-elite-dark font-bold py-4 px-8 rounded-lg hover:bg-green-400 transition transform hover:scale-105 shadow-lg">
+                        📊 Go to Dashboard
+                    </a>
+                    <a href="{% url 'fund_collection' %}" 
+                       class="bg-elite-red text-white font-bold py-4 px-8 rounded-lg hover:bg-red-700 transition transform hover:scale-105 shadow-lg">
+                        💰 Fund Collection
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right Image -->
+            <div class="hidden lg:block">
+                <div class="relative">
+                    <img src="{% static 'core/images/elite_collage.jpg' %}" 
+                         alt="ELITE Events" 
+                         class="rounded-2xl shadow-2xl border-4 border-white/10">
+                    <div class="absolute -bottom-6 -left-6 bg-elite-dark p-4 rounded-lg shadow-xl">
+                        <p class="text-elite-green font-bold text-2xl">47+</p>
+                        <p class="text-sm text-elite-silver">Active Members</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="bg-white py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="text-center">
+                <div class="text-4xl md:text-5xl font-black text-elite-dark mb-2">47</div>
+                <div class="text-elite-silver font-medium">Total Members</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl md:text-5xl font-black text-elite-blue mb-2">6</div>
+                <div class="text-elite-silver font-medium">Teams</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl md:text-5xl font-black text-elite-green mb-2">₱</div>
+                <div class="text-elite-silver font-medium">Funds Managed</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl md:text-5xl font-black text-elite-red mb-2">100%</div>
+                <div class="text-elite-silver font-medium">Transparency</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="bg-gray-50 py-20">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl md:text-5xl font-black text-elite-dark mb-4">
+                System Features
+            </h2>
+            <p class="text-xl text-elite-silver">
+                Everything you need to manage ELITE funds efficiently
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg card-hover border-t-4 border-elite-blue">
+                <div class="text-5xl mb-4">💰</div>
+                <h3 class="text-2xl font-bold text-elite-dark mb-3">Fund Collection</h3>
+                <p class="text-elite-silver leading-relaxed">
+                    Quick tap-to-pay system for weekly contributions. Track partial payments (₱10/day) and monitor outstanding balances in real-time.
+                </p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg card-hover border-t-4 border-elite-green">
+                <div class="text-5xl mb-4">👥</div>
+                <h3 class="text-2xl font-bold text-elite-dark mb-3">Member Management</h3>
+                <p class="text-elite-silver leading-relaxed">
+                    Complete masterlist with team assignments, department info, and payment status tracking. Search and filter in seconds.
+                </p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg card-hover border-t-4 border-elite-red">
+                <div class="text-5xl mb-4">📊</div>
+                <h3 class="text-2xl font-bold text-elite-dark mb-3">Financial Reports</h3>
+                <p class="text-elite-silver leading-relaxed">
+                    Real-time dashboard with collection rates, team performance, expense tracking, and Excel export capabilities.
+                </p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg card-hover border-t-4 border-elite-blue">
+                <div class="text-5xl mb-4">📝</div>
+                <h3 class="text-2xl font-bold text-elite-dark mb-3">Notes & Reminders</h3>
+                <p class="text-elite-silver leading-relaxed">
+                    Keep track of tasks, deadlines, and important notes. Never forget to collect from members or submit reports.
+                </p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg card-hover border-t-4 border-elite-green">
+                <div class="text-5xl mb-4">📅</div>
+                <h3 class="text-2xl font-bold text-elite-dark mb-3">Fund Periods</h3>
+                <p class="text-elite-silver leading-relaxed">
+                    Create weekly or monthly fund cycles. Automatically track expected vs collected amounts per period.
+                </p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg card-hover border-t-4 border-elite-red">
+                <div class="text-5xl mb-4">📥</div>
+                <h3 class="text-2xl font-bold text-elite-dark mb-3">Excel Import/Export</h3>
+                <p class="text-elite-silver leading-relaxed">
+                    Bulk import members from Excel. Export reports for meetings, audits, or external analysis.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Teams Section -->
+<section class="bg-elite-dark text-white py-20">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl md:text-5xl font-black mb-4">
+                Our Teams
+            </h2>
+            <p class="text-xl text-elite-silver">
+                6 specialized teams working together for excellence
+            </p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            <div class="bg-elite-slate rounded-xl p-6 text-center card-hover">
+                <div class="text-4xl mb-3">📋</div>
+                <h3 class="font-bold text-lg mb-2">Documentation</h3>
+                <p class="text-elite-silver text-sm">7 Members</p>
+            </div>
+
+            <div class="bg-elite-slate rounded-xl p-6 text-center card-hover">
+                <div class="text-4xl mb-3"></div>
+                <h3 class="font-bold text-lg mb-2">Layout</h3>
+                <p class="text-elite-silver text-sm">3 Members</p>
+            </div>
+
+            <div class="bg-elite-slate rounded-xl p-6 text-center card-hover">
+                <div class="text-4xl mb-3">🎥</div>
+                <h3 class="font-bold text-lg mb-2">Videographer</h3>
+                <p class="text-elite-silver text-sm">8 Members</p>
+            </div>
+
+            <div class="bg-elite-slate rounded-xl p-6 text-center card-hover">
+                <div class="text-4xl mb-3">✂️</div>
+                <h3 class="font-bold text-lg mb-2">Editing</h3>
+                <p class="text-elite-silver text-sm">8 Members</p>
+            </div>
+
+            <div class="bg-elite-slate rounded-xl p-6 text-center card-hover">
+                <div class="text-4xl mb-3">💻</div>
+                <h3 class="font-bold text-lg mb-2">Technical</h3>
+                <p class="text-elite-silver text-sm">14 Members</p>
+            </div>
+
+            <div class="bg-elite-slate rounded-xl p-6 text-center card-hover">
+                <div class="text-4xl mb-3">👔</div>
+                <h3 class="font-bold text-lg mb-2">Officers</h3>
+                <p class="text-elite-silver text-sm">7 Members</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Events Gallery -->
+<section class="bg-white py-20">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl md:text-5xl font-black text-elite-dark mb-4">
+                Recent Events
+            </h2>
+            <p class="text-xl text-elite-silver">
+                Moments from our workshops and activities
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="group relative overflow-hidden rounded-2xl shadow-lg card-hover">
+                <img src="{% static 'core/images/photo_workshop.jpg' %}" 
+                     alt="Photo Documentation Workshop" 
+                     class="w-full h-64 object-cover transform group-hover:scale-110 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
+                    <div>
+                        <h3 class="text-white font-bold text-xl mb-2">Photo Documentation Workshop</h3>
+                        <p class="text-gray-300 text-sm">February 28, 2026</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group relative overflow-hidden rounded-2xl shadow-lg card-hover">
+                <img src="{% static 'core/images/technical_setup.jpg' %}" 
+                     alt="Technical Setup Mastery" 
+                     class="w-full h-64 object-cover transform group-hover:scale-110 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
+                    <div>
+                        <h3 class="text-white font-bold text-xl mb-2">Technical Setup Mastery</h3>
+                        <p class="text-gray-300 text-sm">OBS & Sound System</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group relative overflow-hidden rounded-2xl shadow-lg card-hover">
+                <img src="{% static 'core/images/hardware_odyssey.jpg' %}" 
+                     alt="Hardware Odyssey" 
+                     class="w-full h-64 object-cover transform group-hover:scale-110 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
+                    <div>
+                        <h3 class="text-white font-bold text-xl mb-2">Hardware Odyssey</h3>
+                        <p class="text-gray-300 text-sm">PC Assembly Workshop</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="gradient-hero text-white py-20">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-4xl md:text-5xl font-black mb-6">
+            Ready to Manage ELITE Funds?
+        </h2>
+        <p class="text-xl text-elite-silver mb-8">
+            Access the treasury management system to track contributions, expenses, and generate reports.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'dashboard' %}" 
+               class="bg-elite-green text-elite-dark font-bold py-4 px-8 rounded-lg hover:bg-green-400 transition transform hover:scale-105 shadow-lg text-lg">
+                Access Dashboard →
+            </a>
+            <a href="{% url 'fund_collection' %}" 
+               class="bg-white text-elite-dark font-bold py-4 px-8 rounded-lg hover:bg-gray-100 transition transform hover:scale-105 shadow-lg text-lg">
+                Start Collection
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
