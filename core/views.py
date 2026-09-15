@@ -181,78 +181,103 @@ def treasury_ledger(request):
 
 
 def fund_collection(request):
-    # Kunin ang current active fund period
+    from django.utils import timezone
+    from datetime import timedelta
+
     active_fund = FundPeriod.objects.filter(status='Active').first()
     
-    # Kung walang active fund, ipakita ang message na gumawa muna
     if not active_fund:
         return render(request, 'core/fund_collection.html', {
-            'active_fund': None,
-            'teams': Team.objects.all().order_by('name'),
+            'active_fund': None, 'teams': Team.objects.all().order_by('name'),
         })
     
-    # Kung may selected team sa URL (e.g., ?team=5)
     selected_team_id = request.GET.get('team')
     selected_team = None
     members_status = []
     
-    if selected_team_id:
-        selected_team = get_object_or_404(Team, pk=selected_team_id)
-        members = Member.objects.filter(team=selected_team, status='Active').order_by('last_name')
+    # Date calculations for Bulletin Board
+    today = timezone.now().date()
+    week_start = today - timedelta(days=today.weekday()) # Monday of current week
+    month_start = today.replace(day=1) # 1st day of current month
+
+    bulletin_today = []
+    bulletin_week = []
+    bulletin_month = []
+    
+    partially_paid_count = 0
+    paid_count = 0
+    unpaid_count = 0
+
+    all_active_members = Member.objects.filter(status='Active')
+    
+    # Convert fund amount to float once to avoid Decimal issues later
+    fund_amount = float(active_fund.amount_per_member)
+
+    for member in all_active_members:
+        contribs = Contribution.objects.filter(member=member, fund_period=active_fund)
         
-        for member in members:
-            # Calculate total paid for this fund period
-            total_paid = Contribution.objects.filter(
-                member=member, 
-                fund_period=active_fund
-            ).aggregate(Sum('amount'))['amount__sum'] or 0
-            
-            remaining = float(active_fund.amount_per_member) - float(total_paid)
-            is_fully_paid = remaining <= 0
-            
+        # Convert each contribution amount to float before summing
+        total_paid = sum(float(c.amount) for c in contribs)
+        remaining = fund_amount - total_paid
+        
+        # Use a small tolerance for float comparison (e.g., <= 0.01)
+        is_fully_paid = remaining <= 0.01
+
+        # 1. Member Status for the List
+        if selected_team_id and member.team.id == int(selected_team_id):
             members_status.append({
-                'member': member,
-                'has_paid': is_fully_paid,
-                'total_paid': total_paid,
+                'member': member, 
+                'has_paid': is_fully_paid, 
+                'total_paid': total_paid, 
                 'remaining': remaining,
             })
-    
-    # Overall stats for the active fund
-    all_active_members = Member.objects.filter(status='Active')
-    total_expected = active_fund.total_expected
-    total_collected = active_fund.total_collected
-    total_outstanding = active_fund.outstanding
-    
-    # List of ALL unpaid members across all teams
-        # List of ALL unpaid members across all teams
-    unpaid_members = []
-    for member in all_active_members:
-        total_paid = Contribution.objects.filter(
-            member=member,
-            fund_period=active_fund
-        ).aggregate(Sum('amount'))['amount__sum'] or 0
-        
-        remaining = float(active_fund.amount_per_member) - float(total_paid)
-        
-        if remaining > 0:
-            unpaid_members.append(member)
-    
-    teams = Team.objects.all().order_by('name')
-    
+
+        # 2. Stats Counting
+        if is_fully_paid:
+            paid_count += 1
+        elif total_paid > 0:
+            partially_paid_count += 1
+        else:
+            unpaid_count += 1
+
+        # 3. Bulletin Board Logic (Who hasn't paid for this timeframe?)
+        if not is_fully_paid:
+            paid_today = contribs.filter(payment_date=today).exists()
+            paid_this_week = contribs.filter(payment_date__gte=week_start).exists()
+            paid_this_month = contribs.filter(payment_date__gte=month_start).exists()
+
+            if not paid_today:
+                bulletin_today.append({'member': member, 'remaining': remaining})
+            if not paid_this_week:
+                bulletin_week.append({'member': member, 'remaining': remaining})
+            if not paid_this_month:
+                bulletin_month.append({'member': member, 'remaining': remaining})
+
+    if selected_team_id:
+        selected_team = get_object_or_404(Team, pk=selected_team_id)
+
+    # Convert totals to float for safe template rendering
+    total_expected = float(active_fund.total_expected)
+    total_collected = float(active_fund.total_collected)
+    total_outstanding = float(active_fund.outstanding)
+
     context = {
-        'active_fund': active_fund,
-        'teams': teams,
-        'selected_team': selected_team,
+        'active_fund': active_fund, 
+        'teams': Team.objects.all().order_by('name'),
+        'selected_team': selected_team, 
         'members_status': members_status,
-        'total_expected': total_expected,
+        'total_expected': total_expected, 
         'total_collected': total_collected,
         'total_outstanding': total_outstanding,
-        'unpaid_members': unpaid_members,
-        'unpaid_count': len(unpaid_members),
-        'paid_count': all_active_members.count() - len(unpaid_members),
+        'paid_count': paid_count, 
+        'unpaid_count': unpaid_count, 
+        'partially_paid_count': partially_paid_count,
+        # Bulletin Board Data (Limit to top 15 to avoid clutter)
+        'bulletin_today': bulletin_today[:15],
+        'bulletin_week': bulletin_week[:15],
+        'bulletin_month': bulletin_month[:15],
     }
     return render(request, 'core/fund_collection.html', context)
-
 
 def quick_pay(request, member_id):
     """Payment with custom amount"""
