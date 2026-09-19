@@ -183,6 +183,7 @@ def treasury_ledger(request):
 def fund_collection(request):
     from django.utils import timezone
     from datetime import timedelta
+    from django.db.models import Sum
 
     active_fund = FundPeriod.objects.filter(status='Active').first()
     
@@ -203,28 +204,23 @@ def fund_collection(request):
     bulletin_today = []
     bulletin_week = []
     bulletin_month = []
+    all_partially_paid = []  # For the sidebar
     
     partially_paid_count = 0
     paid_count = 0
     unpaid_count = 0
 
-    all_active_members = Member.objects.filter(status='Active')
-    
-    # Convert fund amount to float once to avoid Decimal issues later
+    all_active_members = Member.objects.filter(status='Active').select_related('team')
     fund_amount = float(active_fund.amount_per_member)
 
     for member in all_active_members:
         contribs = Contribution.objects.filter(member=member, fund_period=active_fund)
-        
-        # Convert each contribution amount to float before summing
         total_paid = sum(float(c.amount) for c in contribs)
         remaining = fund_amount - total_paid
-        
-        # Use a small tolerance for float comparison (e.g., <= 0.01)
         is_fully_paid = remaining <= 0.01
 
-        # 1. Member Status for the List
-        if selected_team_id and member.team.id == int(selected_team_id):
+        # 1. Member Status for the List (only if selected team matches)
+        if selected_team_id is None or member.team.id == int(selected_team_id):
             members_status.append({
                 'member': member, 
                 'has_paid': is_fully_paid, 
@@ -237,26 +233,48 @@ def fund_collection(request):
             paid_count += 1
         elif total_paid > 0:
             partially_paid_count += 1
+            all_partially_paid.append({
+                'member': member,
+                'total_paid': total_paid,
+                'remaining': remaining,
+                'team': member.team.name
+            })
         else:
             unpaid_count += 1
 
-        # 3. Bulletin Board Logic (Who hasn't paid for this timeframe?)
-        if not is_fully_paid:
-            paid_today = contribs.filter(payment_date=today).exists()
-            paid_this_week = contribs.filter(payment_date__gte=week_start).exists()
-            paid_this_month = contribs.filter(payment_date__gte=month_start).exists()
+        # 3. Bulletin Board Logic
+        # Check payments within each timeframe
+        today_payment = contribs.filter(payment_date=today).aggregate(Sum('amount'))['amount__sum'] or 0
+        week_payment = contribs.filter(payment_date__gte=week_start).aggregate(Sum('amount'))['amount__sum'] or 0
+        month_payment = contribs.filter(payment_date__gte=month_start).aggregate(Sum('amount'))['amount__sum'] or 0
 
-            if not paid_today:
-                bulletin_today.append({'member': member, 'remaining': remaining})
-            if not paid_this_week:
-                bulletin_week.append({'member': member, 'remaining': remaining})
-            if not paid_this_month:
-                bulletin_month.append({'member': member, 'remaining': remaining})
+        # Due Today: If they haven't paid anything TODAY (assuming ₱10/day expectation)
+        if float(today_payment) < 10 and not is_fully_paid:
+            bulletin_today.append({
+                'member': member, 
+                'remaining': remaining,
+                'paid_today': float(today_payment)
+            })
+        
+        # Due This Week: If they haven't paid the full ₱50 this week
+        if float(week_payment) < 50 and not is_fully_paid:
+            bulletin_week.append({
+                'member': member, 
+                'remaining': remaining,
+                'paid_week': float(week_payment)
+            })
+        
+        # Due This Month: If they haven't paid the full amount this month
+        if float(month_payment) < fund_amount and not is_fully_paid:
+            bulletin_month.append({
+                'member': member, 
+                'remaining': remaining,
+                'paid_month': float(month_payment)
+            })
 
     if selected_team_id:
         selected_team = get_object_or_404(Team, pk=selected_team_id)
 
-    # Convert totals to float for safe template rendering
     total_expected = float(active_fund.total_expected)
     total_collected = float(active_fund.total_collected)
     total_outstanding = float(active_fund.outstanding)
@@ -272,12 +290,15 @@ def fund_collection(request):
         'paid_count': paid_count, 
         'unpaid_count': unpaid_count, 
         'partially_paid_count': partially_paid_count,
-        # Bulletin Board Data (Limit to top 15 to avoid clutter)
+        # Bulletin Board Data (Top 15 each)
         'bulletin_today': bulletin_today[:15],
         'bulletin_week': bulletin_week[:15],
         'bulletin_month': bulletin_month[:15],
+        # Partially Paid for Sidebar (sorted by remaining, highest first)
+        'all_partially_paid': sorted(all_partially_paid, key=lambda x: x['remaining'], reverse=True)[:20],
     }
     return render(request, 'core/fund_collection.html', context)
+
 
 def quick_pay(request, member_id):
     """Payment with custom amount"""
@@ -384,3 +405,111 @@ def note_delete(request, pk):
 
 def landing(request):
     return render(request, 'core/landing.html')
+
+def export_collection_status(request):
+    """Export collection status showing who paid, how much, and remaining"""
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from django.http import HttpResponse
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    active_fund = FundPeriod.objects.filter(status='Active').first()
+    
+    if not active_fund:
+        messages.error(request, 'No active fund period found.')
+        return redirect('fund_collection')
+    
+    # Get filter parameter
+    filter_type = request.GET.get('filter', 'all')  # all, week, month
+    today = timezone.now().date()
+    week_start = today - timedelta(days=today.weekday())
+    month_start = today.replace(day=1)
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename=ELITE_Collection_Status_{today}.xlsx'
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Collection Status"
+    
+    # Headers with styling
+    headers = ['Member ID', 'Last Name', 'First Name', 'Team', 'Department', 
+               'Expected', 'Total Paid', 'Remaining', 'Status', 'Last Payment Date']
+    
+    header_fill = PatternFill(start_color='1e293b', end_color='1e293b', fill_type='solid')
+    header_font = Font(color='FFFFFF', bold=True)
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center')
+    
+    # Get all active members
+    members = Member.objects.filter(status='Active').select_related('team').order_by('team__name', 'last_name')
+    
+    row_num = 2
+    fund_amount = float(active_fund.amount_per_member)
+    
+    for member in members:
+        # Filter contributions based on selected timeframe
+        contribs = Contribution.objects.filter(member=member, fund_period=active_fund)
+        
+        if filter_type == 'week':
+            contribs = contribs.filter(payment_date__gte=week_start)
+        elif filter_type == 'month':
+            contribs = contribs.filter(payment_date__gte=month_start)
+        
+        total_paid = sum(float(c.amount) for c in contribs)
+        remaining = fund_amount - total_paid
+        is_fully_paid = remaining <= 0.01
+        
+        # Get last payment date
+        last_payment = contribs.order_by('-payment_date').first()
+        last_payment_date = last_payment.payment_date if last_payment else ''
+        
+        # Determine status
+        if is_fully_paid:
+            status = 'PAID'
+            status_fill = PatternFill(start_color='86efac', end_color='86efac', fill_type='solid')  # Green
+        elif total_paid > 0:
+            status = 'PARTIAL'
+            status_fill = PatternFill(start_color='fde047', end_color='fde047', fill_type='solid')  # Yellow
+        else:
+            status = 'UNPAID'
+            status_fill = PatternFill(start_color='fca5a5', end_color='fca5a5', fill_type='solid')  # Red
+        
+        # Write row
+        ws.cell(row=row_num, column=1, value=member.member_id)
+        ws.cell(row=row_num, column=2, value=member.last_name)
+        ws.cell(row=row_num, column=3, value=member.first_name)
+        ws.cell(row=row_num, column=4, value=member.team.name)
+        ws.cell(row=row_num, column=5, value=member.department)
+        ws.cell(row=row_num, column=6, value=fund_amount)
+        ws.cell(row=row_num, column=7, value=round(total_paid, 2))
+        ws.cell(row=row_num, column=8, value=round(remaining, 2))
+        
+        status_cell = ws.cell(row=row_num, column=9, value=status)
+        status_cell.fill = status_fill
+        status_cell.font = Font(bold=True)
+        
+        ws.cell(row=row_num, column=10, value=last_payment_date)
+        
+        row_num += 1
+    
+    # Adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 30)
+        ws.column_dimensions[column_letter].width = adjusted_width
+    
+    wb.save(response)
+    return response

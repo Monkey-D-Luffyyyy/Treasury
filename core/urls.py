@@ -19,4 +19,5 @@ urlpatterns = [
     path('notes/add/', views.note_create, name='note_create'),
     path('notes/<int:pk>/toggle/', views.note_toggle_complete, name='note_toggle_complete'),
     path('notes/<int:pk>/delete/', views.note_delete, name='note_delete'),
+    path('collection/export/', views.export_collection_status, name='export_collection_status'),
 ]

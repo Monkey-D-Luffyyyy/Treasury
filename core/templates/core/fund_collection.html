@@ -180,27 +180,47 @@
                 {% endif %}
             </div>
 
-            <!-- Sidebar: Partially Paid Members -->
+                        <!-- Sidebar: Partially Paid Members (Auto-updated) -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg shadow p-6 sticky top-6">
-                    <h3 class="text-lg font-bold text-yellow-600 mb-4">⚠️ Partially Paid</h3>
-                    <p class="text-sm text-gray-500 mb-4">Members who paid some but not all:</p>
+                    <h3 class="text-lg font-bold text-yellow-600 mb-4">
+                        ⚠️ Partially Paid ({{ partially_paid_count }})
+                    </h3>
+                    <p class="text-sm text-gray-500 mb-4">Members who need to complete payment:</p>
                     
                     <div class="space-y-2 max-h-96 overflow-y-auto">
-                        {% for item in members_status %}
-                            {% if item.total_paid > 0 and not item.has_paid %}
-                                <div class="p-3 bg-yellow-50 rounded border border-yellow-200">
-                                    <p class="text-sm font-bold text-gray-800">{{ item.member.last_name }}, {{ item.member.first_name }}</p>
-                                    <div class="flex justify-between text-xs mt-1">
-                                        <span class="text-green-600">Paid: ₱{{ item.total_paid }}</span>
-                                        <span class="text-red-600">Due: ₱{{ item.remaining }}</span>
-                                    </div>
-                                    <a href="{% url 'quick_pay' item.member.id %}" class="block text-center mt-2 bg-yellow-500 text-white text-xs font-bold py-1 rounded hover:bg-yellow-600">Continue Payment</a>
+                        {% for item in all_partially_paid %}
+                            <div class="p-3 bg-yellow-50 rounded border border-yellow-200 hover:bg-yellow-100 transition">
+                                <p class="text-sm font-bold text-gray-800">{{ item.member.last_name }}, {{ item.member.first_name }}</p>
+                                <p class="text-xs text-gray-500">{{ item.team }}</p>
+                                <div class="flex justify-between text-xs mt-1">
+                                    <span class="text-green-600 font-semibold">Paid: ₱{{ item.total_paid }}</span>
+                                    <span class="text-red-600 font-semibold">Due: ₱{{ item.remaining }}</span>
                                 </div>
-                            {% endif %}
+                                <!-- Progress bar -->
+                                <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                                    <div class="bg-yellow-500 h-1.5 rounded-full" style="width: {{ item.total_paid|floatformat:0|add:'0' }}%"></div>
+                                </div>
+                                <a href="{% url 'quick_pay' item.member.id %}" 
+                                   class="block text-center mt-2 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-1.5 rounded transition">
+                                    Continue Payment
+                                </a>
+                            </div>
                         {% empty %}
-                            <p class="text-sm text-gray-500 text-center">No partially paid members in this team.</p>
+                            <div class="text-center py-8">
+                                <p class="text-green-600 font-bold text-lg">🎉</p>
+                                <p class="text-sm text-gray-500">No partially paid members!</p>
+                                <p class="text-xs text-gray-400 mt-1">Everyone is fully paid.</p>
+                            </div>
                         {% endfor %}
+                    </div>
+                    
+                    <!-- Export Button -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <a href="{% url 'export_collection_status' %}" 
+                           class="block text-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition text-sm">
+                            📥 Export Collection Report
+                        </a>
                     </div>
                 </div>
             </div>
