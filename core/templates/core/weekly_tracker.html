@@ -1,0 +1,56 @@
+{% extends "core/base.html" %}
+
+{% block title %}Weekly Fund Tracker - ELITE{% endblock %}
+
+{% block content %}
+<div class="max-w-[95vw] mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-3xl font-black text-elite-dark">📅 Weekly Fund Tracker</h2>
+            <p class="text-elite-silver">Monitor remaining balances per week (Week 1 to Week 6). Advance payments are automatically reflected.</p>
+        </div>
+        <a href="{% url 'export_weekly_tracker' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow transition flex items-center">
+            📥 Export to Excel
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-elite-dark text-white">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Member ID</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Last Name</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">First Name</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Team</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Dept</th>
+                    {% for fp in fund_periods %}
+                        <th class="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-elite-slate">Week {{ forloop.counter }}<br><span class="text-[10px] font-normal">Rem: ₱{{ fp.amount_per_member }}</span></th>
+                    {% endfor %}
+                    <th class="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider bg-elite-red">Total Remaining</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                {% for row in tracker_data %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3 font-mono font-bold text-elite-blue">{{ row.member.member_id }}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">{{ row.member.last_name }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ row.member.first_name }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ row.member.team.name }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ row.member.department }}</td>
+                    
+                    {% for rem in row.weekly_remaining %}
+                        <td class="px-4 py-3 text-center font-bold {% if rem == 0 %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                            ₱{{ rem|floatformat:0 }}
+                        </td>
+                    {% endfor %}
+                    
+                    <td class="px-4 py-3 text-center font-black text-lg {% if row.total_remaining == 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                        ₱{{ row.total_remaining|floatformat:0 }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

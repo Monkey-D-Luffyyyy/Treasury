@@ -20,4 +20,6 @@ urlpatterns = [
     path('notes/<int:pk>/toggle/', views.note_toggle_complete, name='note_toggle_complete'),
     path('notes/<int:pk>/delete/', views.note_delete, name='note_delete'),
     path('collection/export/', views.export_collection_status, name='export_collection_status'),
+    path('weekly-tracker/', views.weekly_tracker, name='weekly_tracker'),
+    path('weekly-tracker/export/', views.export_weekly_tracker, name='export_weekly_tracker'),
 ]

@@ -290,12 +290,13 @@ def fund_collection(request):
         'paid_count': paid_count, 
         'unpaid_count': unpaid_count, 
         'partially_paid_count': partially_paid_count,
-        # Bulletin Board Data (Top 15 each)
-        'bulletin_today': bulletin_today[:15],
-        'bulletin_week': bulletin_week[:15],
-        'bulletin_month': bulletin_month[:15],
-        # Partially Paid for Sidebar (sorted by remaining, highest first)
-        'all_partially_paid': sorted(all_partially_paid, key=lambda x: x['remaining'], reverse=True)[:20],
+        
+        # INALIS NA ANG [:15] PARA LUMABAS LAHAT
+        'bulletin_today': bulletin_today,
+        'bulletin_week': bulletin_week,
+        'bulletin_month': bulletin_month,
+        
+        'all_partially_paid': sorted(all_partially_paid, key=lambda x: x['remaining'], reverse=True),
     }
     return render(request, 'core/fund_collection.html', context)
 
@@ -513,3 +514,110 @@ def export_collection_status(request):
     
     wb.save(response)
     return response
+
+def weekly_tracker(request):
+    from django.db.models import Sum
+    
+    # Get the latest 6 fund periods (Weeks)
+    fund_periods = list(FundPeriod.objects.order_by('start_date')[:6])
+    
+    members = Member.objects.filter(status='Active').select_related('team').order_by('last_name', 'first_name')
+    
+    tracker_data = []
+    for member in members:
+        row = {
+            'member': member,
+            'weekly_remaining': [],
+            'total_remaining': 0.0
+        }
+        for fp in fund_periods:
+            expected = float(fp.amount_per_member)
+            paid = Contribution.objects.filter(member=member, fund_period=fp).aggregate(Sum('amount'))['amount__sum'] or 0
+            paid = float(paid)
+            remaining = max(0.0, expected - paid)
+            row['weekly_remaining'].append(remaining)
+            row['total_remaining'] += remaining
+            
+        tracker_data.append(row)
+        
+    context = {
+        'fund_periods': fund_periods,
+        'tracker_data': tracker_data
+    }
+    return render(request, 'core/weekly_tracker.html', context)
+
+def export_weekly_tracker(request):
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from django.http import HttpResponse
+    from django.db.models import Sum
+    from django.utils import timezone
+    
+    fund_periods = list(FundPeriod.objects.order_by('start_date')[:6])
+    members = Member.objects.filter(status='Active').select_related('team').order_by('last_name', 'first_name')
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename=ELITE_Weekly_Tracker_{timezone.now().date()}.xlsx'
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Weekly Fund Tracker"
+    
+    # Headers
+    headers = ['Member ID', 'Last Name', 'First Name', 'Team', 'Department']
+    for i in range(len(fund_periods)):
+        headers.append(f'Week {i+1} Remaining')
+    headers.append('Total Remaining')
+    
+    header_fill = PatternFill(start_color='1e293b', end_color='1e293b', fill_type='solid')
+    header_font = Font(color='FFFFFF', bold=True)
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center')
+        
+    row_num = 2
+    for row_data in tracker_data_logic(members, fund_periods): # Helper logic
+        ws.cell(row=row_num, column=1, value=row_data['member'].member_id)
+        ws.cell(row=row_num, column=2, value=row_data['member'].last_name)
+        ws.cell(row=row_num, column=3, value=row_data['member'].first_name)
+        ws.cell(row=row_num, column=4, value=row_data['member'].team.name)
+        ws.cell(row=row_num, column=5, value=row_data['member'].department)
+        
+        col_idx = 6
+        for rem in row_data['weekly_remaining']:
+            cell = ws.cell(row=row_num, column=col_idx, value=rem)
+            if rem == 0:
+                cell.fill = PatternFill(start_color='86efac', end_color='86efac', fill_type='solid') # Green
+            elif rem > 0:
+                cell.fill = PatternFill(start_color='fca5a5', end_color='fca5a5', fill_type='solid') # Red
+            col_idx += 1
+            
+        total_cell = ws.cell(row=row_num, column=col_idx, value=row_data['total_remaining'])
+        if row_data['total_remaining'] == 0:
+            total_cell.font = Font(bold=True, color='008000')
+        else:
+            total_cell.font = Font(bold=True, color='FF0000')
+            
+        row_num += 1
+        
+    for column in ws.columns:
+        max_length = max(len(str(cell.value)) for cell in column if cell.value is not None)
+        ws.column_dimensions[column[0].column_letter].width = min(max_length + 2, 25)
+        
+    wb.save(response)
+    return response
+
+# Helper function to avoid code duplication
+def tracker_data_logic(members, fund_periods):
+    for member in members:
+        row = {'member': member, 'weekly_remaining': [], 'total_remaining': 0.0}
+        for fp in fund_periods:
+            expected = float(fp.amount_per_member)
+            paid = Contribution.objects.filter(member=member, fund_period=fp).aggregate(Sum('amount'))['amount__sum'] or 0
+            remaining = max(0.0, expected - float(paid))
+            row['weekly_remaining'].append(remaining)
+            row['total_remaining'] += remaining
+        yield row
