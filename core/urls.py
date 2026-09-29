@@ -24,5 +24,8 @@ urlpatterns = [
     path('weekly-tracker/export/', views.export_weekly_tracker, name='export_weekly_tracker'),
     path('collection/fund/<int:fund_id>/edit/', views.fund_period_edit, name='fund_period_edit'),
     path('collection/fund/<int:fund_id>/delete/', views.fund_period_delete, name='fund_period_delete'),
-    path('collection/fund/<int:fund_id>/export/', views.export_fund_report, name='export_fund_report'), # For Step 2
+    path('collection/fund/<int:fund_id>/export/', views.export_fund_report, name='export_fund_report'),
+    path('treasury/add-declaration/', views.add_treasury_declaration, name='add_treasury_declaration'),
+    path('treasury/declaration/<int:pk>/delete/', views.delete_treasury_declaration, name='delete_treasury_declaration'),
+    path('excel/export/expenses/', views.export_expenses, name='export_expenses')
 ]

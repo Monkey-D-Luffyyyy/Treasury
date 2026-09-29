@@ -133,3 +133,13 @@ class Note(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class TreasuryDeclaration(models.Model):
+    """Para sa Initial Fund, Donations, o ibang pera na hindi galing sa weekly collection"""
+    description = models.CharField(max_length=200, help_text="e.g., Initial Fund 2026, Alumni Donation")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateField(default=timezone.now)
+    
+    def __str__(self):
+        return f"{self.description} - ₱{self.amount}"

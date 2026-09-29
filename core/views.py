@@ -160,24 +160,51 @@ def expense_create(request):
 
 
 def treasury_ledger(request):
-    # Kunin lahat ng contributions at expenses
-    contributions = Contribution.objects.all().select_related('member').order_by('-payment_date')[:20]
-    expenses = Expense.objects.all().order_by('-expense_date')[:20]
+    from django.db.models import Sum
+    from .models import TreasuryDeclaration # Siguraduhing naka-import
     
-    # Calculate totals
-    total_income = Contribution.objects.aggregate(Sum('amount'))['amount__sum'] or 0
+    expenses = Expense.objects.all().order_by('-expense_date')
+    declarations = TreasuryDeclaration.objects.all().order_by('-date')
+    
+    # 1. Income from Members (Weekly Collections)
+    member_contributions = Contribution.objects.aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    # 2. Manual Declarations (Initial Fund, etc.)
+    manual_income = TreasuryDeclaration.objects.aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    # TOTAL INCOME = Member Contributions + Manual Declarations
+    total_income = float(member_contributions) + float(manual_income)
     total_expenses = Expense.objects.aggregate(Sum('amount'))['amount__sum'] or 0
-    current_balance = total_income - total_expenses
+    current_balance = total_income - float(total_expenses)
     
     context = {
-        'contributions': contributions,
         'expenses': expenses,
         'total_income': total_income,
         'total_expenses': total_expenses,
         'current_balance': current_balance,
+        'member_contributions': member_contributions,
+        'manual_income': manual_income,
+        'declarations': declarations,
     }
     return render(request, 'core/treasury_ledger.html', context)
 
+# Bagong View para mag-add ng Manual Fund
+def add_treasury_declaration(request):
+    if request.method == 'POST':
+        desc = request.POST.get('description')
+        amount = request.POST.get('amount')
+        if desc and amount:
+            TreasuryDeclaration.objects.create(description=desc, amount=amount)
+            messages.success(request, 'Fund declaration added successfully!')
+        return redirect('treasury_ledger')
+    return redirect('treasury_ledger')
+
+# Bagong View para mag-delete ng Declaration (kung may mali)
+def delete_treasury_declaration(request, pk):
+    dec = get_object_or_404(TreasuryDeclaration, pk=pk)
+    dec.delete()
+    messages.warning(request, 'Fund declaration deleted.')
+    return redirect('treasury_ledger')
 
 
 def fund_collection(request):
@@ -678,4 +705,35 @@ def export_fund_report(request, fund_id):
         ws.column_dimensions[column[0].column_letter].width = min(max_length + 2, 25)
         
     wb.save(response)
+    return response
+
+
+
+def export_expenses(request):
+    import openpyxl
+    from django.http import HttpResponse
+    from django.utils import timezone
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename=ELITE_Expenses_{timezone.now().date()}.xlsx'
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Expenses"
+    
+    # Headers
+    headers = ['Date', 'Category', 'Description', 'Amount', 'Receipt No.']
+    for col, header in enumerate(headers, 1):
+        ws.cell(row=1, column=col, value=header)
+        
+    # Data
+    row_num = 2
+    for exp in Expense.objects.all().order_by('-expense_date'):
+        ws.cell(row=row_num, column=1, value=exp.expense_date)
+        ws.cell(row=row_num, column=2, value=exp.category)
+        ws.cell(row=row_num, column=3, value=exp.description)
+        ws.cell(row=row_num, column=4, value=float(exp.amount))
+        ws.cell(row=row_num, column=5, value=exp.receipt_no)
+        row_num += 1
+        
     return response
