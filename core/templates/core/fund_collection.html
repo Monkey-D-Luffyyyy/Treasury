@@ -13,22 +13,57 @@
         {% endfor %}
     {% endif %}
 
-    <!-- 1. FUND PERIOD SELECTOR (TABS) -->
+        <!-- 1. FUND PERIOD SELECTOR (TABS) WITH CONTROLS -->
     <div class="bg-white rounded-xl shadow-lg p-4 mb-6">
-        <h3 class="text-sm font-bold text-gray-500 uppercase mb-3">Select Fund Period / Week:</h3>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 gap-2">
+            <h3 class="text-sm font-bold text-gray-500 uppercase">Select Fund Period / Week:</h3>
+            <div class="flex gap-2">
+                <a href="{% url 'export_fund_report' selected_fund.id %}" class="px-3 py-1.5 rounded-lg font-semibold text-xs bg-green-600 text-white hover:bg-green-700 flex items-center gap-1">
+                    📥 Export This Week's Report
+                </a>
+                <a href="{% url 'fund_period_create' %}" class="px-3 py-1.5 rounded-lg font-semibold text-xs bg-blue-600 text-white hover:bg-blue-700">
+                    + New Fund
+                </a>
+            </div>
+        </div>
+        
         <div class="flex flex-wrap gap-2">
             {% for fund in all_funds %}
-                <a href="{% url 'fund_collection' %}?fund={{ fund.id }}" 
-                   class="px-4 py-2 rounded-lg font-semibold text-sm transition border {% if selected_fund and selected_fund.id == fund.id %}bg-blue-800 text-white border-blue-800 shadow-md{% else %}bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200{% endif %}">
-                    {{ fund.name }} 
-                    {% if fund.status == 'Completed' %}<span class="text-xs opacity-75">(Closed)</span>{% endif %}
-                </a>
-            {% empty %}
-                <p class="text-gray-500 text-sm">No fund periods created yet.</p>
+                <div class="relative group">
+                    <a href="{% url 'fund_collection' %}?fund={{ fund.id }}" 
+                       class="px-4 py-2 rounded-lg font-semibold text-sm transition border {% if selected_fund and selected_fund.id == fund.id %}bg-blue-800 text-white border-blue-800 shadow-md{% else %}bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200{% endif %}">
+                        {{ fund.name }} 
+                    </a>
+                    <!-- Edit/Delete Dropdown (Visible on Hover) -->
+                    <div class="absolute top-full left-0 mt-1 hidden group-hover:flex bg-white shadow-xl rounded-lg border border-gray-200 overflow-hidden z-10">
+                        <button onclick="document.getElementById('editModal{{ fund.id }}').classList.remove('hidden')" class="px-3 py-1.5 text-xs text-blue-600 hover:bg-blue-50 border-r border-gray-200">Edit</button>
+                        <a href="{% url 'fund_period_delete' fund.id %}" onclick="return confirm('WARNING: Deleting this fund will also delete ALL payment records linked to it. Are you sure?');" class="px-3 py-1.5 text-xs text-red-600 hover:bg-red-50">Delete</a>
+                    </div>
+                </div>
+
+                <!-- Edit Modal for this specific fund -->
+                <div id="editModal{{ fund.id }}" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                    <div class="bg-white p-6 rounded-lg shadow-xl w-96">
+                        <h3 class="text-lg font-bold mb-4">Edit Fund Period</h3>
+                        <form method="POST" action="{% url 'fund_period_edit' fund.id %}">
+                            {% csrf_token %}
+                            <label class="block text-sm font-medium mb-1">Fund Name</label>
+                            <input type="text" name="name" value="{{ fund.name }}" class="w-full border rounded px-3 py-2 mb-3" required>
+                            
+                            <label class="block text-sm font-medium mb-1">Status</label>
+                            <select name="status" class="w-full border rounded px-3 py-2 mb-4">
+                                <option value="Active" {% if fund.status == 'Active' %}selected{% endif %}>Active (Open for payments)</option>
+                                <option value="Completed" {% if fund.status == 'Completed' %}selected{% endif %}>Completed (Closed)</option>
+                            </select>
+                            
+                            <div class="flex justify-end gap-2">
+                                <button type="button" onclick="document.getElementById('editModal{{ fund.id }}').classList.add('hidden')" class="px-4 py-2 bg-gray-200 rounded text-sm">Cancel</button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             {% endfor %}
-            <a href="{% url 'fund_period_create' %}" class="px-4 py-2 rounded-lg font-semibold text-sm bg-green-600 text-white hover:bg-green-700 border border-green-600">
-                + New Fund
-            </a>
         </div>
     </div>
 

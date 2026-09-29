@@ -22,4 +22,7 @@ urlpatterns = [
     path('collection/export/', views.export_collection_status, name='export_collection_status'),
     path('weekly-tracker/', views.weekly_tracker, name='weekly_tracker'),
     path('weekly-tracker/export/', views.export_weekly_tracker, name='export_weekly_tracker'),
+    path('collection/fund/<int:fund_id>/edit/', views.fund_period_edit, name='fund_period_edit'),
+    path('collection/fund/<int:fund_id>/delete/', views.fund_period_delete, name='fund_period_delete'),
+    path('collection/fund/<int:fund_id>/export/', views.export_fund_report, name='export_fund_report'), # For Step 2
 ]

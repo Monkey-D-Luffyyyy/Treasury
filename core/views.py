@@ -277,50 +277,91 @@ def fund_collection(request):
 
 
 def quick_pay(request, member_id, fund_id):
-    """Payment for a SPECIFIC fund period"""
+    """Payment for a SPECIFIC fund period (allows multiple partial payments)"""
+    from django.db.models import Sum
+    from django.utils import timezone
+    
     selected_fund = get_object_or_404(FundPeriod, pk=fund_id)
     member = get_object_or_404(Member, pk=member_id)
     
-    # Check kung nagbayad na ba siya SA SPECIFIC NA FUND NA TO
-    existing = Contribution.objects.filter(member=member, fund_period=selected_fund).first()
+    # 1. Calculate total already paid for this specific fund
+    total_paid = Contribution.objects.filter(member=member, fund_period=selected_fund).aggregate(Sum('amount'))['amount__sum'] or 0
+    total_paid = float(total_paid)
     
-    if existing:
-        messages.warning(request, f'{member.last_name} already paid for {selected_fund.name}!')
-    else:
-        amount = float(request.POST.get('amount', selected_fund.amount_per_member))
-        
-        # Record the payment to the SPECIFIC fund period
-        Contribution.objects.create(
-            member=member,
-            fund_period=selected_fund, # Dito na natin inaasign kung saang week napunta ang pera
-            contribution_type='Weekly',
-            amount=amount,
-            payment_date=timezone.now().date(),
-            recorded_by='Treasurer',
-        )
-        messages.success(request, f'✓ {member.first_name} {member.last_name} paid ₱{amount} for {selected_fund.name}!')
+    fund_amount = float(selected_fund.amount_per_member)
+    remaining = max(0.0, fund_amount - total_paid)
     
-    return redirect(f"{reverse('fund_collection')}?fund={selected_fund.id}")
+    if request.method == 'POST':
+        amount_str = request.POST.get('amount', '0')
+        try:
+            amount = float(amount_str)
+        except ValueError:
+            amount = 0.0
+            
+        if amount <= 0:
+            messages.error(request, 'Amount must be greater than 0!')
+        elif amount > remaining:
+            messages.warning(request, f'Amount exceeds remaining balance (₱{remaining}). Recording full remaining balance instead.')
+            amount = remaining
+        else:
+            # Record the payment
+            Contribution.objects.create(
+                member=member,
+                fund_period=selected_fund,
+                contribution_type='Weekly',
+                amount=amount,
+                payment_date=timezone.now().date(),
+                recorded_by='Treasurer',
+            )
+            messages.success(request, f'✓ {member.first_name} {member.last_name} paid ₱{amount} for {selected_fund.name}!')
+            
+        return redirect(f"{reverse('fund_collection')}?fund={selected_fund.id}")
+    
+    # GET request: Show the payment form with options
+    context = {
+        'member': member,
+        'active_fund': selected_fund,
+        'total_paid': total_paid,
+        'remaining': remaining,
+    }
+    return render(request, 'core/quick_pay.html', context)
+
 
 def fund_period_create(request):
-    """Create a new fund period"""
     if request.method == 'POST':
         name = request.POST.get('name')
         amount = request.POST.get('amount_per_member', 50)
         
-        # Auto-close previous active fund periods
-        FundPeriod.objects.filter(status='Active').update(status='Completed')
+        # INALIS NA ANG AUTO-CLOSE NG LUMANG FUNDS. 
+        # Mananatiling Active ang lahat hangga't hindi mo manual binabago.
         
-        # Create new one
         FundPeriod.objects.create(
             name=name,
             amount_per_member=amount,
-            status='Active'
+            status='Active' # Default na Active
         )
         messages.success(request, f'New fund period "{name}" created!')
         return redirect('fund_collection')
     
     return render(request, 'core/fund_period_create.html')
+
+# BAGONG FUNCTIONS PARA SA EDIT AT DELETE
+def fund_period_edit(request, fund_id):
+    fund = get_object_or_404(FundPeriod, pk=fund_id)
+    if request.method == 'POST':
+        fund.name = request.POST.get('name', fund.name)
+        fund.status = request.POST.get('status', fund.status)
+        fund.save()
+        messages.success(request, 'Fund period updated successfully!')
+        return redirect('fund_collection')
+    return redirect('fund_collection')
+
+def fund_period_delete(request, fund_id):
+    fund = get_object_or_404(FundPeriod, pk=fund_id)
+    fund_name = fund.name
+    fund.delete() # Note: Dahil sa CASCADE, mabubura rin ang payments na naka-link dito. Mag-ingat sa pag-delete.
+    messages.warning(request, f'Fund period "{fund_name}" and its records were deleted.')
+    return redirect('fund_collection')
 
 
 
@@ -569,3 +610,72 @@ def tracker_data_logic(members, fund_periods):
             row['weekly_remaining'].append(remaining)
             row['total_remaining'] += remaining
         yield row
+
+
+
+
+def export_fund_report(request, fund_id):
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from django.http import HttpResponse
+    from django.db.models import Sum
+    
+    fund = get_object_or_404(FundPeriod, pk=fund_id)
+    members = Member.objects.filter(status='Active').select_related('team').order_by('team__name', 'last_name')
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename=ELITE_Report_{fund.name.replace(" ", "_")}.xlsx'
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = fund.name
+    
+    # Headers
+    headers = ['Member ID', 'Last Name', 'First Name', 'Team', 'Expected', 'Total Paid', 'Remaining', 'Status']
+    header_fill = PatternFill(start_color='1e293b', end_color='1e293b', fill_type='solid')
+    header_font = Font(color='FFFFFF', bold=True)
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center')
+        
+    row_num = 2
+    fund_amount = float(fund.amount_per_member)
+    
+    for member in members:
+        total_paid = Contribution.objects.filter(member=member, fund_period=fund).aggregate(Sum('amount'))['amount__sum'] or 0
+        total_paid = float(total_paid)
+        remaining = max(0.0, fund_amount - total_paid)
+        
+        if remaining <= 0.01:
+            status = 'PAID'
+            status_fill = PatternFill(start_color='86efac', end_color='86efac', fill_type='solid') # Green
+        elif total_paid > 0:
+            status = 'PARTIAL'
+            status_fill = PatternFill(start_color='fde047', end_color='fde047', fill_type='solid') # Yellow
+        else:
+            status = 'UNPAID'
+            status_fill = PatternFill(start_color='fca5a5', end_color='fca5a5', fill_type='solid') # Red
+            
+        ws.cell(row=row_num, column=1, value=member.member_id)
+        ws.cell(row=row_num, column=2, value=member.last_name)
+        ws.cell(row=row_num, column=3, value=member.first_name)
+        ws.cell(row=row_num, column=4, value=member.team.name)
+        ws.cell(row=row_num, column=5, value=fund_amount)
+        ws.cell(row=row_num, column=6, value=round(total_paid, 2))
+        ws.cell(row=row_num, column=7, value=round(remaining, 2))
+        
+        status_cell = ws.cell(row=row_num, column=8, value=status)
+        status_cell.fill = status_fill
+        status_cell.font = Font(bold=True)
+        
+        row_num += 1
+        
+    for column in ws.columns:
+        max_length = max(len(str(cell.value)) for cell in column if cell.value is not None)
+        ws.column_dimensions[column[0].column_letter].width = min(max_length + 2, 25)
+        
+    wb.save(response)
+    return response
