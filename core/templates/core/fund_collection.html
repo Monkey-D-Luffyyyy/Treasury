@@ -13,39 +13,61 @@
         {% endfor %}
     {% endif %}
 
-    {% if not active_fund %}
+    <!-- 1. FUND PERIOD SELECTOR (TABS) -->
+    <div class="bg-white rounded-xl shadow-lg p-4 mb-6">
+        <h3 class="text-sm font-bold text-gray-500 uppercase mb-3">Select Fund Period / Week:</h3>
+        <div class="flex flex-wrap gap-2">
+            {% for fund in all_funds %}
+                <a href="{% url 'fund_collection' %}?fund={{ fund.id }}" 
+                   class="px-4 py-2 rounded-lg font-semibold text-sm transition border {% if selected_fund and selected_fund.id == fund.id %}bg-blue-800 text-white border-blue-800 shadow-md{% else %}bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200{% endif %}">
+                    {{ fund.name }} 
+                    {% if fund.status == 'Completed' %}<span class="text-xs opacity-75">(Closed)</span>{% endif %}
+                </a>
+            {% empty %}
+                <p class="text-gray-500 text-sm">No fund periods created yet.</p>
+            {% endfor %}
+            <a href="{% url 'fund_period_create' %}" class="px-4 py-2 rounded-lg font-semibold text-sm bg-green-600 text-white hover:bg-green-700 border border-green-600">
+                + New Fund
+            </a>
+        </div>
+    </div>
+
+    {% if not selected_fund %}
         <div class="bg-white rounded-lg shadow p-8 text-center">
-            <h2 class="text-2xl font-bold text-gray-700 mb-4">No Active Fund Period</h2>
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">No Fund Period Selected</h2>
+            <p class="text-gray-500 mb-6">Please select a fund period above or create a new one.</p>
             <a href="{% url 'fund_period_create' %}" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg">+ Create New Fund Period</a>
         </div>
     {% else %}
-        
-        <!-- Active Fund Header & Stats -->
-        <div class="bg-gradient-to-r from-elite-dark to-elite-slate text-white rounded-xl shadow-lg p-6 mb-6">
+
+        <!-- 2. SELECTED FUND HEADER & STATS -->
+        <div class="bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl shadow-lg p-6 mb-6">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h2 class="text-2xl font-bold">{{ active_fund.name }}</h2>
-                    <p class="text-elite-silver">₱{{ active_fund.amount_per_member }} per member • Started {{ active_fund.start_date }}</p>
+                    <h2 class="text-2xl font-bold">{{ selected_fund.name }}</h2>
+                    <p class="text-gray-400">₱{{ selected_fund.amount_per_member }} per member • Started {{ selected_fund.start_date }}</p>
+                    <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-bold {% if selected_fund.status == 'Active' %}bg-green-500 text-white{% else %}bg-gray-500 text-white{% endif %}">
+                        {{ selected_fund.status }}
+                    </span>
                 </div>
-                <a href="{% url 'fund_period_create' %}" class="bg-white text-elite-dark font-bold py-2 px-4 rounded-lg hover:bg-gray-200">+ New Fund</a>
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div class="bg-white/10 rounded-lg p-3 text-center">
-                    <p class="text-xs text-elite-silver">Expected</p>
+                    <p class="text-xs text-gray-400">Expected</p>
                     <p class="text-xl font-bold">₱{{ total_expected }}</p>
                 </div>
                 <div class="bg-white/10 rounded-lg p-3 text-center">
-                    <p class="text-xs text-elite-silver">Collected</p>
-                    <p class="text-xl font-bold text-elite-green">₱{{ total_collected }}</p>
+                    <p class="text-xs text-gray-400">Collected</p>
+                    <p class="text-xl font-bold text-green-400">₱{{ total_collected }}</p>
                 </div>
                 <div class="bg-white/10 rounded-lg p-3 text-center">
-                    <p class="text-xs text-elite-silver">Outstanding</p>
-                    <p class="text-xl font-bold text-elite-red">{{ total_outstanding }}</p>
+                    <p class="text-xs text-gray-400">Outstanding</p>
+                    <p class="text-xl font-bold text-red-400">₱{{ total_outstanding }}</p>
                 </div>
                 <div class="bg-white/10 rounded-lg p-3 text-center">
-                    <p class="text-xs text-elite-silver">Fully Paid</p>
-                    <p class="text-xl font-bold text-elite-green">{{ paid_count }}</p>
+                    <p class="text-xs text-gray-400">Fully Paid</p>
+                    <p class="text-xl font-bold text-green-400">{{ paid_count }}</p>
                 </div>
                 <div class="bg-yellow-500/20 rounded-lg p-3 text-center border border-yellow-500/50">
                     <p class="text-xs text-yellow-200">Partially Paid</p>
@@ -54,22 +76,21 @@
             </div>
         </div>
 
-        <!-- 📢 BULLETIN BOARD SECTION -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border-t-4 border-elite-red">
-            <h3 class="text-xl font-bold text-elite-dark mb-4 flex items-center">
-                 Collection Bulletin Board 
-                <span class="ml-2 text-sm font-normal text-elite-silver">(Auto-updated daily)</span>
+        <!-- 3. BULLETIN BOARD -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border-t-4 border-red-500">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                📢 Collection Bulletin Board 
+                <span class="ml-2 text-sm font-normal text-gray-500">(For {{ selected_fund.name }})</span>
             </h3>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Due Today -->
                 <div class="bg-red-50 rounded-lg p-4 border border-red-200">
-                    <h4 class="font-bold text-red-800 mb-3 flex items-center">🔴 Due Today (₱10)</h4>
+                    <h4 class="font-bold text-red-800 mb-3">🔴 Due Today</h4>
                     <ul class="space-y-2 max-h-48 overflow-y-auto">
                         {% for item in bulletin_today %}
                             <li class="flex justify-between items-center text-sm bg-white p-2 rounded shadow-sm">
                                 <span class="font-medium text-gray-800">{{ item.member.last_name }}, {{ item.member.first_name }}</span>
-                                <a href="{% url 'quick_pay' item.member.id %}" class="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">Pay</a>
+                                <a href="{% url 'quick_pay' item.member.id selected_fund.id %}" class="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">Pay</a>
                             </li>
                         {% empty %}
                             <li class="text-sm text-green-600 font-semibold text-center py-4">✅ All paid for today!</li>
@@ -77,14 +98,13 @@
                     </ul>
                 </div>
 
-                <!-- Due This Week -->
                 <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                    <h4 class="font-bold text-yellow-800 mb-3 flex items-center">🟡 Due This Week (₱50)</h4>
+                    <h4 class="font-bold text-yellow-800 mb-3">🟡 Due This Week</h4>
                     <ul class="space-y-2 max-h-48 overflow-y-auto">
                         {% for item in bulletin_week %}
                             <li class="flex justify-between items-center text-sm bg-white p-2 rounded shadow-sm">
                                 <span class="font-medium text-gray-800">{{ item.member.last_name }}, {{ item.member.first_name }}</span>
-                                <a href="{% url 'quick_pay' item.member.id %}" class="text-xs bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700">Pay</a>
+                                <a href="{% url 'quick_pay' item.member.id selected_fund.id %}" class="text-xs bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700">Pay</a>
                             </li>
                         {% empty %}
                             <li class="text-sm text-green-600 font-semibold text-center py-4">✅ All paid for this week!</li>
@@ -92,14 +112,13 @@
                     </ul>
                 </div>
 
-                <!-- Due This Month -->
                 <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <h4 class="font-bold text-blue-800 mb-3 flex items-center">🔵 Due This Month</h4>
+                    <h4 class="font-bold text-blue-800 mb-3">🔵 Due This Month</h4>
                     <ul class="space-y-2 max-h-48 overflow-y-auto">
                         {% for item in bulletin_month %}
                             <li class="flex justify-between items-center text-sm bg-white p-2 rounded shadow-sm">
                                 <span class="font-medium text-gray-800">{{ item.member.last_name }}, {{ item.member.first_name }}</span>
-                                <a href="{% url 'quick_pay' item.member.id %}" class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">Pay</a>
+                                <a href="{% url 'quick_pay' item.member.id selected_fund.id %}" class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700">Pay</a>
                             </li>
                         {% empty %}
                             <li class="text-sm text-green-600 font-semibold text-center py-4">✅ All paid for this month!</li>
@@ -109,15 +128,13 @@
             </div>
         </div>
 
-        <!-- MAIN COLLECTION AREA -->
+        <!-- 4. MAIN COLLECTION AREA -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            
-            <!-- Team Selection & Member List -->
             <div class="lg:col-span-3">
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
                     {% for team in teams %}
-                        <a href="{% url 'fund_collection' %}?team={{ team.id }}" 
-                           class="p-3 rounded-lg text-center font-semibold transition {% if selected_team and selected_team.id == team.id %}bg-elite-blue text-white shadow-lg{% else %}bg-white text-gray-700 hover:bg-gray-100 shadow{% endif %}">
+                        <a href="{% url 'fund_collection' %}?fund={{ selected_fund.id }}&team={{ team.id }}" 
+                           class="p-3 rounded-lg text-center font-semibold transition {% if selected_team and selected_team.id == team.id %}bg-blue-800 text-white shadow-lg{% else %}bg-white text-gray-700 hover:bg-gray-100 shadow{% endif %}">
                             {{ team.name }}
                         </a>
                     {% endfor %}
@@ -125,13 +142,12 @@
 
                 {% if selected_team %}
                     <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-bold text-elite-dark mb-4">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">
                             {{ selected_team.name }} — Tap to Record Payment
                         </h3>
                         
                         <div class="space-y-3">
                             {% for item in members_status %}
-                                <!-- COLOR CODING LOGIC: Red (0), Yellow (Partial), Green (Full) -->
                                 {% if item.has_paid %}
                                     <div class="flex items-center justify-between p-4 rounded-lg bg-green-50 border-l-4 border-green-500">
                                 {% elif item.total_paid > 0 %}
@@ -148,7 +164,6 @@
                                             <p class="font-bold text-gray-800">{{ item.member.last_name }}, {{ item.member.first_name }}</p>
                                             <p class="text-xs text-gray-500">{{ item.member.member_id }} • {{ item.member.department }}</p>
                                             
-                                            <!-- Status Text -->
                                             {% if item.has_paid %}
                                                 <p class="text-xs font-bold text-green-600 mt-1">FULLY PAID</p>
                                             {% elif item.total_paid > 0 %}
@@ -161,8 +176,8 @@
                                     
                                     <div>
                                         {% if not item.has_paid %}
-                                            <a href="{% url 'quick_pay' item.member.id %}" 
-                                               class="bg-elite-blue hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105">
+                                            <a href="{% url 'quick_pay' item.member.id selected_fund.id %}" 
+                                               class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105">
                                                 PAY ₱{{ item.remaining }}
                                             </a>
                                         {% else %}
@@ -180,7 +195,7 @@
                 {% endif %}
             </div>
 
-                        <!-- Sidebar: Partially Paid Members (Auto-updated) -->
+            <!-- Sidebar: Partially Paid Members -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg shadow p-6 sticky top-6">
                     <h3 class="text-lg font-bold text-yellow-600 mb-4">
@@ -197,11 +212,7 @@
                                     <span class="text-green-600 font-semibold">Paid: ₱{{ item.total_paid }}</span>
                                     <span class="text-red-600 font-semibold">Due: ₱{{ item.remaining }}</span>
                                 </div>
-                                <!-- Progress bar -->
-                                <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                                    <div class="bg-yellow-500 h-1.5 rounded-full" style="width: {{ item.total_paid|floatformat:0|add:'0' }}%"></div>
-                                </div>
-                                <a href="{% url 'quick_pay' item.member.id %}" 
+                                <a href="{% url 'quick_pay' item.member.id selected_fund.id %}" 
                                    class="block text-center mt-2 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-1.5 rounded transition">
                                     Continue Payment
                                 </a>
@@ -210,22 +221,13 @@
                             <div class="text-center py-8">
                                 <p class="text-green-600 font-bold text-lg">🎉</p>
                                 <p class="text-sm text-gray-500">No partially paid members!</p>
-                                <p class="text-xs text-gray-400 mt-1">Everyone is fully paid.</p>
                             </div>
                         {% endfor %}
                     </div>
-                    
-                    <!-- Export Button -->
-                    <div class="mt-6 pt-6 border-t border-gray-200">
-                        <a href="{% url 'export_collection_status' %}" 
-                           class="block text-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition text-sm">
-                            📥 Export Collection Report
-                        </a>
-                    </div>
                 </div>
             </div>
-
         </div>
+
     {% endif %}
 </div>
 {% endblock %}
