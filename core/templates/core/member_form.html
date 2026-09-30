@@ -1,68 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ action }} Member - ELITE Treasury</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="max-w-2xl mx-auto p-6">
-        <h1 class="text-3xl font-bold text-blue-800 mb-6">{{ action }} Member</h1>
-        
-        <form method="POST" class="bg-white p-6 rounded-lg shadow space-y-4">
-            {% csrf_token %} <!-- Security feature ng Django -->
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Member ID</label>
-                {{ form.member_id }}
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                    {{ form.first_name }}
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                    {{ form.last_name }}
-                </div>
-            </div>
+{% extends "core/base.html" %}
 
-            <div class="grid grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                    {{ form.department }}
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Year Level</label>
-                    {{ form.year_level }}
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Section</label>
-                    {{ form.section }}
-                </div>
-            </div>
+{% block title %}{{ action }} Member - ELITE Treasury{% endblock %}
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Team</label>
-                    {{ form.team }}
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    {{ form.status }}
-                </div>
-            </div>
+{% block content %}
+<div class="max-w-3xl mx-auto p-6 mt-6">
+    
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <!-- Form Header -->
+        <div class="bg-elite-dark text-white p-6">
+            <h1 class="text-2xl font-bold">{{ action }} Member</h1>
+            <p class="text-elite-silver text-sm mt-1">Fill out the details below to {{ action|lower }} a member.</p>
+        </div>
 
-            <div class="flex justify-end space-x-3 pt-4">
-                <a href="{% url 'member_list' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
-                    Cancel
-                </a>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Save Member
-                </button>
-            </div>
-        </form>
+        <!-- Form Body -->
+        <div class="p-8">
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Member ID -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Member ID</label>
+                    {{ form.member_id }}
+                </div>
+                
+                <!-- Name Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                </div>
+
+                <!-- Academic Info Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Department / Course</label>
+                        {{ form.department }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Year Level</label>
+                        {{ form.year_level }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Section</label>
+                        {{ form.section }}
+                    </div>
+                </div>
+
+                <!-- Org Info Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Team Assignment</label>
+                        {{ form.team }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Status</label>
+                        {{ form.status }}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{% url 'member_list' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition">
+                        Cancel
+                    </a>
+                    <button type="submit" class="bg-elite-blue hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow transition transform hover:scale-[1.02]">
+                        💾 Save Member
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</body>
-</html>
+</div>
+
+<!-- Custom styling for Django Form Inputs to match Tailwind -->
+<style>
+    input[type="text"], input[type="number"], select, textarea {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+</style>
+{% endblock %}

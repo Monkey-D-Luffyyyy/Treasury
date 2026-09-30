@@ -13,7 +13,7 @@
         {% endfor %}
     {% endif %}
 
-        <!-- 1. FUND PERIOD SELECTOR (TABS) WITH CONTROLS -->
+    <!-- 1. FUND PERIOD SELECTOR (TABS) WITH CONTROLS -->
     <div class="bg-white rounded-xl shadow-lg p-4 mb-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 gap-2">
             <h3 class="text-sm font-bold text-gray-500 uppercase">Select Fund Period / Week:</h3>
@@ -94,7 +94,7 @@
                 </div>
                 <div class="bg-white/10 rounded-lg p-3 text-center">
                     <p class="text-xs text-gray-400">Collected</p>
-                    <p class="text-xl font-bold text-green-400">₱{{ total_collected }}</p>
+                    <p class="text-xl font-bold text-green-400">{{ total_collected }}</p>
                 </div>
                 <div class="bg-white/10 rounded-lg p-3 text-center">
                     <p class="text-xs text-gray-400">Outstanding</p>
@@ -234,7 +234,7 @@
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg shadow p-6 sticky top-6">
                     <h3 class="text-lg font-bold text-yellow-600 mb-4">
-                        ⚠️ Partially Paid ({{ partially_paid_count }})
+                        ️ Partially Paid ({{ partially_paid_count }})
                     </h3>
                     <p class="text-sm text-gray-500 mb-4">Members who need to complete payment:</p>
                     

@@ -1,52 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Record Expense - ELITE</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="max-w-2xl mx-auto p-6">
-        <h1 class="text-3xl font-bold text-red-800 mb-6">Record Expense</h1>
-        
-        <form method="POST" class="bg-white p-6 rounded-lg shadow space-y-4">
-            {% csrf_token %}
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                {{ form.category }}
-            </div>
+{% extends "core/base.html" %}
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                {{ form.description }}
-            </div>
+{% block title %}Record Expense - ELITE{% endblock %}
 
-            <div class="grid grid-cols-2 gap-4">
+{% block content %}
+<div class="max-w-2xl mx-auto p-6 mt-6">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <div class="bg-red-700 text-white p-6">
+            <h1 class="text-2xl font-bold">Record Expense</h1>
+            <p class="text-red-100 text-sm mt-1">Log an organizational expense for transparency.</p>
+        </div>
+
+        <div class="p-8">
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)</label>
-                    {{ form.amount }}
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Category</label>
+                    {{ form.category }}
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Expense Date</label>
-                    {{ form.expense_date }}
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Description / Purpose</label>
+                    {{ form.description }}
                 </div>
-            </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Receipt No.</label>
-                {{ form.receipt_no }}
-            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Amount (₱)</label>
+                        {{ form.amount }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Expense Date</label>
+                        {{ form.expense_date }}
+                    </div>
+                </div>
 
-            <div class="flex justify-end space-x-3 pt-4">
-                <a href="{% url 'treasury_ledger' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
-                    Cancel
-                </a>
-                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                    Save Expense
-                </button>
-            </div>
-        </form>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Receipt No. (Optional)</label>
+                    {{ form.receipt_no }}
+                </div>
+
+                <div class="flex justify-end gap-3 pt-6 border-t border-gray-200">
+                    <a href="{% url 'treasury_ledger' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition">Cancel</a>
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg shadow transition transform hover:scale-[1.02]">
+                        💾 Save Expense
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</body>
-</html>
+</div>
+
+<style>
+    input[type="text"], input[type="number"], input[type="date"], select, textarea {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+</style>
+{% endblock %}

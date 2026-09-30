@@ -1,42 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>New Fund Period - ELITE</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-800">
-    <div class="max-w-lg mx-auto p-6 mt-10">
-        <h1 class="text-3xl font-bold text-blue-800 mb-6">Create New Fund Period</h1>
-        
-        <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-6">
-            <p class="text-yellow-800 text-sm">⚠️ Creating a new fund period will automatically close the current active one.</p>
+{% extends "core/base.html" %}
+
+{% block title %}New Fund Period - ELITE{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto p-6 mt-6">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <div class="bg-elite-dark text-white p-6">
+            <h1 class="text-2xl font-bold">Create New Fund Period</h1>
+            <p class="text-elite-silver text-sm mt-1">Set up a new weekly or monthly collection cycle.</p>
         </div>
-        
-        <form method="POST" class="bg-white p-6 rounded-lg shadow space-y-4">
-            {% csrf_token %}
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Fund Name</label>
-                <input type="text" name="name" required placeholder="e.g., September Week 2" 
-                       class="border rounded px-3 py-2 w-full">
+
+        <div class="p-8">
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-sm text-yellow-800">
+                ⚠️ <strong>Note:</strong> Creating a new fund period will NOT close the previous ones. All funds remain open for late payments.
             </div>
             
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Amount Per Member (₱)</label>
-                <input type="number" name="amount_per_member" step="0.01" value="50" required
-                       class="border rounded px-3 py-2 w-full">
-            </div>
-            
-            <div class="flex justify-end space-x-3 pt-4">
-                <a href="{% url 'fund_collection' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
-                    Cancel
-                </a>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Create Fund Period
-                </button>
-            </div>
-        </form>
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Fund Name (e.g., Week 1, September)</label>
+                    <input type="text" name="name" required placeholder="Enter fund name..." class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-elite-blue">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Amount Per Member (₱)</label>
+                    <input type="number" name="amount_per_member" step="0.01" value="50" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-elite-blue">
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-6 border-t border-gray-200">
+                    <a href="{% url 'fund_collection' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition">Cancel</a>
+                    <button type="submit" class="bg-elite-blue hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow transition transform hover:scale-[1.02]">
+                        💾 Create Fund Period
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

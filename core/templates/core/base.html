@@ -15,9 +15,9 @@
                         elite: {
                             dark: '#0f172a',
                             slate: '#1e293b',
-                            red: '#dc2626',
-                            green: '#4ade80',
                             blue: '#3b82f6',
+                            green: '#10b981',
+                            red: '#ef4444',
                             silver: '#94a3b8',
                         }
                     },
@@ -30,137 +30,93 @@
     </script>
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .gradient-hero {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-        }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .card-hover {
-            transition: all 0.3s ease;
-        }
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
+        /* Custom Scrollbar for a premium feel */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
 
     <!-- Navigation -->
-    <nav class="bg-elite-dark text-white shadow-2xl sticky top-0 z-50">
+    <nav class="bg-elite-dark text-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between items-center h-16">
-                <!-- Logo -->
                 <a href="{% url 'landing' %}" class="flex items-center space-x-3">
-                    <img src="{% static 'core/images/elite_logo.png' %}" alt="ELITE Logo" class="h-10 w-10">
+                    <img src="{% static 'core/images/elite_logo.png' %}" alt="ELITE Logo" class="h-10 w-10 rounded-full bg-white p-0.5">
                     <div>
-                        <span class="font-bold text-lg tracking-wider">E.L.I.T.E</span>
+                        <span class="font-black text-lg tracking-wider">E.L.I.T.E</span>
                         <span class="hidden md:block text-xs text-elite-silver">Treasury Management</span>
                     </div>
                 </a>
                 
                 <!-- Desktop Menu -->
-                                <!-- Desktop Menu -->
                 <div class="hidden md:flex space-x-6 items-center">
-                    <a href="{% url 'landing' %}" class="hover:text-elite-green transition font-medium">Home</a>
-                    <a href="{% url 'dashboard' %}" class="hover:text-elite-green transition font-medium">Dashboard</a>
-                    <a href="{% url 'member_list' %}" class="hover:text-elite-green transition font-medium">Members</a>
-                    <a href="{% url 'fund_collection' %}" class="hover:text-elite-green transition font-medium">Collection</a>
-                    <a href="{% url 'treasury_ledger' %}" class="hover:text-elite-green transition font-medium">Treasury</a>
-                    <a href="{% url 'notes_list' %}" class="hover:text-elite-green transition font-medium">Notes</a>
-                    <a href="{% url 'weekly_tracker' %}" class="hover:text-elite-green transition font-medium">Weekly Tracker</a>
+                    <a href="{% url 'landing' %}" class="hover:text-elite-blue transition font-medium text-sm">Home</a>
+                    <a href="{% url 'dashboard' %}" class="hover:text-elite-blue transition font-medium text-sm">Dashboard</a>
+                    <a href="{% url 'member_list' %}" class="hover:text-elite-blue transition font-medium text-sm">Members</a>
+                    <a href="{% url 'fund_collection' %}" class="hover:text-elite-blue transition font-medium text-sm">Collection</a>
+                    <a href="{% url 'weekly_tracker' %}" class="hover:text-elite-blue transition font-medium text-sm">Tracker</a>
+                    <a href="{% url 'treasury_ledger' %}" class="hover:text-elite-blue transition font-medium text-sm">Treasury</a>
+                    <a href="{% url 'notes_list' %}" class="hover:text-elite-blue transition font-medium text-sm">Notes</a>
                 </div>
 
                 <!-- Mobile Menu Button -->
                 <button id="mobileMenuBtn" class="md:hidden text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
             </div>
-
-                        <!-- Mobile Menu -->
-            <div id="mobileMenu" class="hidden md:hidden pb-4 space-y-2">
-                <a href="{% url 'landing' %}" class="block py-2 hover:text-elite-green">Home</a>
-                <a href="{% url 'dashboard' %}" class="block py-2 hover:text-elite-green">Dashboard</a>
-                <a href="{% url 'member_list' %}" class="block py-2 hover:text-elite-green">Members</a>
-                <a href="{% url 'fund_collection' %}" class="block py-2 hover:text-elite-green">Collection</a>
-                <a href="{% url 'treasury_ledger' %}" class="block py-2 hover:text-elite-green">Treasury</a>
-                <a href="{% url 'notes_list' %}" class="block py-2 hover:text-elite-green">Notes</a>
-            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-elite-slate border-t border-gray-700 pb-4 px-4 space-y-2">
+            <a href="{% url 'landing' %}" class="block py-2 hover:text-elite-blue text-sm">Home</a>
+            <a href="{% url 'dashboard' %}" class="block py-2 hover:text-elite-blue text-sm">Dashboard</a>
+            <a href="{% url 'member_list' %}" class="block py-2 hover:text-elite-blue text-sm">Members</a>
+            <a href="{% url 'fund_collection' %}" class="block py-2 hover:text-elite-blue text-sm">Collection</a>
+            <a href="{% url 'weekly_tracker' %}" class="block py-2 hover:text-elite-blue text-sm">Tracker</a>
+            <a href="{% url 'treasury_ledger' %}" class="block py-2 hover:text-elite-blue text-sm">Treasury</a>
+            <a href="{% url 'notes_list' %}" class="block py-2 hover:text-elite-blue text-sm">Notes</a>
         </div>
     </nav>
 
     <!-- Messages -->
     {% if messages %}
-        <div class="max-w-7xl mx-auto px-4 mt-4">
+        <div class="max-w-7xl mx-auto px-4 mt-6 w-full">
             {% for message in messages %}
-                <div class="mb-4 p-4 rounded-lg shadow-lg {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500{% elif message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500{% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}">
-                    <div class="flex items-center">
-                        <span class="mr-2">
-                            {% if message.tags == 'success' %}✓{% elif message.tags == 'warning' %}⚠{% elif message.tags == 'error' %}✗{% else %}ℹ{% endif %}
-                        </span>
-                        {{ message }}
-                    </div>
+                <div class="mb-4 p-4 rounded-lg shadow-md border-l-4 {% if message.tags == 'success' %}bg-green-50 text-green-800 border-green-500{% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border-yellow-500{% elif message.tags == 'error' %}bg-red-50 text-red-800 border-red-500{% else %}bg-blue-50 text-blue-800 border-blue-500{% endif %} flex items-center">
+                    <span class="mr-3 text-lg">
+                        {% if message.tags == 'success' %}✅{% elif message.tags == 'warning' %}⚠️{% elif message.tags == 'error' %}❌{% else %}ℹ️{% endif %}
+                    </span>
+                    <span class="font-medium">{{ message }}</span>
                 </div>
             {% endfor %}
         </div>
     {% endif %}
 
     <!-- Main Content -->
-    <main class="min-h-screen">
+    <main class="flex-grow">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-elite-dark text-white mt-12">
-        <div class="max-w-7xl mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                    <div class="flex items-center space-x-3 mb-4">
-                        <img src="{% static 'core/images/elite_logo.png' %}" alt="ELITE Logo" class="h-12 w-12">
-                        <div>
-                            <h3 class="font-bold text-lg">E.L.I.T.E</h3>
-                            <p class="text-xs text-elite-silver">Elevating Leaders Innovatively</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-elite-silver">Training & Excellence Organization</p>
-                </div>
-                
-                <div>
-                    <h4 class="font-bold mb-3">Quick Links</h4>
-                    <ul class="space-y-2 text-sm text-elite-silver">
-                        <li><a href="{% url 'dashboard' %}" class="hover:text-white transition">Dashboard</a></li>
-                        <li><a href="{% url 'member_list' %}" class="hover:text-white transition">Members</a></li>
-                        <li><a href="{% url 'fund_collection' %}" class="hover:text-white transition">Fund Collection</a></li>
-                        <li><a href="{% url 'treasury_ledger' %}" class="hover:text-white transition">Treasury</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="font-bold mb-3">System Info</h4>
-                    <p class="text-sm text-elite-silver">Treasury Management System</p>
-                    <p class="text-sm text-elite-silver mt-2">© 2026 E.L.I.T.E Organization</p>
-                    <p class="text-xs text-elite-silver mt-1">All rights reserved.</p>
-                </div>
+    <footer class="bg-elite-dark text-white mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="flex justify-center items-center space-x-3 mb-4">
+                <img src="{% static 'core/images/elite_logo.png' %}" alt="ELITE Logo" class="h-8 w-8 rounded-full bg-white p-0.5">
+                <span class="font-black text-lg">E.L.I.T.E</span>
             </div>
+            <p class="text-elite-silver text-sm">Elevating Leaders Innovatively - Training & Excellence</p>
+            <p class="text-gray-500 text-xs mt-2">&copy; 2026 ELITE Organization. Treasury Management System.</p>
         </div>
     </footer>
 
     <script>
-        // Mobile menu toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const mobileMenu = document.getElementById('mobileMenu');
-        
         if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', () => {
-                mobileMenu.classList.toggle('hidden');
-            });
+            mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
         }
     </script>
-
 </body>
 </html>
